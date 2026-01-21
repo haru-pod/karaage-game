@@ -12,53 +12,96 @@
             background-size: 60px 60px; background-position: 0 0, 30px 30px;
             overflow: hidden; font-family: 'Arial Black', sans-serif; touch-action: none;
         }
-        #order-ui { 
+        #header { 
             width: 100%; height: 60px; background: #222; color: #fff; 
             display: flex; align-items: center; justify-content: center; 
             position: fixed; top: 0; z-index: 100; font-size: 24px; letter-spacing: 2px;
         }
-        #status { color: #5d4037; font-weight: bold; position: fixed; top: 70px; width: 100%; font-size: 22px; z-index: 100; }
+        #info-bar { position: fixed; top: 70px; width: 100%; z-index: 100; display: flex; justify-content: space-around; font-size: 18px; color: #5d4037; font-weight: bold; }
         
-        #char { font-size: 70px; position: absolute; z-index: 10; width: 70px; height: 70px; line-height: 70px; transform: translate(-50%, -50%); pointer-events: none; }
+        #char { font-size: 70px; position: absolute; z-index: 10; width: 70px; height: 70px; line-height: 70px; transform: translate(-50%, -50%); pointer-events: none; display: none; }
         #karaage { font-size: 50px; position: absolute; display: none; width: 60px; height: 60px; transform: translate(-50%, -50%); z-index: 5; }
 
-        #joystick-area { position: fixed; bottom: 30px; left: 30px; width: 130px; height: 130px; background: rgba(0,0,0,0.25); border-radius: 50%; z-index: 200; }
-        #joystick-stick { position: absolute; top: 50%; left: 50%; width: 55px; height: 55px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 4px rgba(0,0,0,0.3); }
+        /* 操作系 */
+        #joystick-area { position: fixed; bottom: 30px; left: 30px; width: 130px; height: 130px; background: rgba(0,0,0,0.25); border-radius: 50%; z-index: 200; display: none; }
+        #joystick-stick { position: absolute; top: 50%; left: 50%; width: 55px; height: 55px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); }
+        #action-btn-area { position: fixed; bottom: 40px; right: 30px; z-index: 200; display: none; }
+        #btn { width: 120px; height: 120px; background: #D2691E; color: white; border-radius: 50%; border: 6px solid #fff; font-size: 22px; font-weight: bold; box-shadow: 0 8px #5d4037; }
 
-        #action-btn-area { position: fixed; bottom: 40px; right: 30px; z-index: 200; }
-        #btn { 
-            width: 120px; height: 120px; background: #D2691E; color: white; 
-            border-radius: 50%; border: 6px solid #fff; font-size: 22px; font-weight: bold; 
-            box-shadow: 0 8px #5d4037; cursor: pointer;
+        /* オーバーレイ（タイトル・リトライ） */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 300;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white;
         }
-        #btn:active { transform: scale(0.9); box-shadow: 0 2px #5d4037; }
+        .big-btn {
+            padding: 20px 40px; font-size: 30px; background: #ff4500; color: white;
+            border: none; border-radius: 10px; cursor: pointer; margin-top: 20px;
+            box-shadow: 0 5px #b22222;
+        }
     </style>
 </head>
 <body>
-    <div id="order-ui">KARAAGE EATER</div>
-    <div id="status">満腹度: 0%</div>
+    <div id="header">KARAAGE EATER</div>
+    
+    <div id="info-bar">
+        <div id="timer-ui">TIME: 30</div>
+        <div id="status">満腹度: 0%</div>
+    </div>
+
     <div id="karaage">🍗</div>
     <div id="char">😎</div>
     
     <div id="joystick-area"><div id="joystick-stick"></div></div>
-    
-    <div id="action-btn-area">
-        <button id="btn">食べる！</button>
+    <div id="action-btn-area"><button id="btn">食べる！</button></div>
+
+    <div id="overlay">
+        <h1 id="overlay-title">KARAAGE EATER</h1>
+        <p id="overlay-msg">30秒以内に10個食べろ！</p>
+        <button id="start-btn" class="big-btn">START</button>
     </div>
 
     <script>
         let fullness = 0;
+        let timeLeft = 30;
+        let gameState = "TITLE"; // TITLE, PLAYING, GAMEOVER
         let pX = window.innerWidth / 2, pY = window.innerHeight / 2;
         let kX = 0, kY = 0;
-        let joyX = 0, joyY = 0; 
+        let joyX = 0, joyY = 0;
         let isMoving = false;
-        let moveSpeed = 4.5; // スティックの最高速度を少し抑えて「重み」を出す
+        let timerId = null;
 
         const char = document.getElementById('char');
         const karaage = document.getElementById('karaage');
         const status = document.getElementById('status');
+        const timerUi = document.getElementById('timer-ui');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayMsg = document.getElementById('overlay-msg');
+        const startBtn = document.getElementById('start-btn');
         const stick = document.getElementById('joystick-stick');
         const joyArea = document.getElementById('joystick-area');
+
+        // ゲーム開始・再開
+        function startGame() {
+            fullness = 0;
+            timeLeft = 30;
+            gameState = "PLAYING";
+            pX = window.innerWidth / 2;
+            pY = window.innerHeight / 2;
+            
+            status.innerText = `満腹度: 0%`;
+            timerUi.innerText = `TIME: 30`;
+            overlay.style.display = "none";
+            char.style.display = "block";
+            char.innerText = "😎";
+            document.getElementById('joystick-area').style.display = "block";
+            document.getElementById('action-btn-area').style.display = "block";
+            
+            spawnKaraage();
+            startTimer();
+        }
 
         function spawnKaraage() {
             kX = Math.random() * (window.innerWidth - 120) + 60;
@@ -67,43 +110,52 @@
             karaage.style.top = kY + "px";
             karaage.style.display = "block";
         }
-        spawnKaraage();
 
+        function startTimer() {
+            if(timerId) clearInterval(timerId);
+            timerId = setInterval(() => {
+                if(gameState !== "PLAYING") return;
+                timeLeft--;
+                timerUi.innerText = `TIME: ${timeLeft}`;
+                if(timeLeft <= 0) endGame("TIME UP...", "あきらめるな！");
+            }, 1000);
+        }
+
+        function endGame(title, msg) {
+            gameState = "GAMEOVER";
+            clearInterval(timerId);
+            overlay.style.display = "flex";
+            overlayTitle.innerText = title;
+            overlayMsg.innerText = msg;
+            startBtn.innerText = "RETRY";
+            karaage.style.display = "none";
+        }
+
+        // スティック操作
         const handleMove = (e) => {
-            if (!isMoving) return;
+            if (!isMoving || gameState !== "PLAYING") return;
             const touch = e.touches[0];
             const rect = joyArea.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
-            
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
+            let dx = touch.clientX - centerX, dy = touch.clientY - centerY;
             const maxRadius = 60;
             const distance = Math.min(Math.hypot(dx, dy), maxRadius);
             const angle = Math.atan2(dy, dx);
-            
-            // 入力値を少し鈍くして、繊細な操作感に
             joyX = (Math.cos(angle) * distance) / maxRadius;
             joyY = (Math.sin(angle) * distance) / maxRadius;
-            
             stick.style.left = (50 + joyX * 40) + "%";
             stick.style.top = (50 + joyY * 40) + "%";
         };
 
         joyArea.addEventListener('touchstart', (e) => { isMoving = true; handleMove(e); });
         joyArea.addEventListener('touchmove', (e) => { handleMove(e); });
-        window.addEventListener('touchend', () => {
-            isMoving = false;
-            joyX = 0; joyY = 0;
-            stick.style.left = "50%"; stick.style.top = "50%";
-        });
+        window.addEventListener('touchend', () => { isMoving = false; joyX = 0; joyY = 0; stick.style.left = "50%"; stick.style.top = "50%"; });
 
         function gameLoop() {
-            if (isMoving) {
-                pX += joyX * moveSpeed;
-                pY += joyY * moveSpeed;
-                
-                // 画面端の制限を強化（はみ出し防止）
+            if (gameState === "PLAYING" && isMoving) {
+                pX += joyX * 5;
+                pY += joyY * 5;
                 pX = Math.max(40, Math.min(window.innerWidth - 40, pX));
                 pY = Math.max(120, Math.min(window.innerHeight - 180, pY));
             }
@@ -114,31 +166,26 @@
         gameLoop();
 
         document.getElementById('btn').onclick = () => {
-            // 判定範囲を「110」まで大幅拡大（かなり優しくなりました）
+            if(gameState !== "PLAYING") return;
             let dist = Math.hypot(pX - kX, pY - kY);
             if (dist < 110) { 
                 fullness += 10;
-                if (fullness > 100) fullness = 100;
                 status.innerText = `満腹度: ${fullness}%`;
-                
                 char.innerText = "😋"; 
                 karaage.style.display = "none";
-                
                 setTimeout(() => { 
                     if (fullness >= 100) {
-                        char.innerText = "😎✨"; 
-                        status.innerText = "FULL COMPLETED!";
+                        char.innerText = "😎✨";
+                        endGame("MISSION COMPLETE!", "最高の食いっぷりだ！");
                     } else {
                         char.innerText = "😎"; 
                         spawnKaraage();
                     }
-                }, 250);
-            } else {
-                // 失敗した時も少し悔しがる演出
-                char.innerText = "💢"; 
-                setTimeout(() => { if(fullness < 100) char.innerText = "😎"; }, 300);
+                }, 200);
             }
         };
+
+        startBtn.onclick = startGame;
     </script>
 </body>
 </html>
