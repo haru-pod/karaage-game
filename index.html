@@ -96,7 +96,127 @@
                 fullness += 20;
                 status.innerText = `満腹度: ${fullness}%`;
                 char.innerText = "😋";
+                karaage.style.display = "none";<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>唐揚げパニック：本格操作編</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; text-align: center; 
+            background-color: #d2b48c;
+            background-image: linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887), linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887);
+            background-size: 60px 60px; background-position: 0 0, 30px 30px;
+            overflow: hidden; font-family: sans-serif; touch-action: none;
+        }
+        #order-ui { width: 100%; height: 50px; background: rgba(0,0,0,0.8); color: white; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; z-index: 100; }
+        #status { color: white; font-weight: bold; position: fixed; top: 60px; width: 100%; text-shadow: 2px 2px 2px black; z-index: 100; }
+        
+        /* キャラクターと唐揚げ */
+        #char { font-size: 60px; position: absolute; z-index: 10; width: 60px; height: 60px; line-height: 60px; transform: translate(-50%, -50%); }
+        #karaage { font-size: 40px; position: absolute; display: none; width: 40px; height: 40px; transform: translate(-50%, -50%); }
+
+        /* 左下：仮想スティックエリア */
+        #joystick-area { position: fixed; bottom: 20px; left: 20px; width: 150px; height: 150px; background: rgba(255,255,255,0.2); border-radius: 50%; z-index: 200; touch-action: none; }
+        #joystick-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); }
+
+        /* 右下：アクションボタン */
+        #action-btn-area { position: fixed; bottom: 40px; right: 30px; z-index: 200; }
+        #btn { width: 100px; height: 100px; background: #D2691E; color: white; border-radius: 50%; border: 4px solid #fff; font-size: 18px; font-weight: bold; box-shadow: 0 6px #5d4037; }
+        #btn:active { transform: scale(0.9); box-shadow: 0 2px #5d4037; }
+    </style>
+</head>
+<body>
+    <div id="order-ui">🕹️ スティックで移動せよ！</div>
+    <div id="status">満腹度: 0%</div>
+    <div id="karaage">🍗</div>
+    <div id="char">👨‍🍳</div>
+    
+    <div id="joystick-area"><div id="joystick-stick"></div></div>
+    
+    <div id="action-btn-area">
+        <button id="btn">食べる！</button>
+    </div>
+
+    <script>
+        let fullness = 0;
+        let pX = window.innerWidth / 2, pY = window.innerHeight / 2;
+        let kX = 0, kY = 0;
+        let joyX = 0, joyY = 0; // スティックの傾き (-1 to 1)
+        let isMoving = false;
+
+        const char = document.getElementById('char');
+        const karaage = document.getElementById('karaage');
+        const status = document.getElementById('status');
+        const stick = document.getElementById('joystick-stick');
+        const joyArea = document.getElementById('joystick-area');
+
+        function spawnKaraage() {
+            kX = Math.random() * (window.innerWidth - 100) + 50;
+            kY = Math.random() * (window.innerHeight - 300) + 100;
+            karaage.style.left = kX + "px";
+            karaage.style.top = kY + "px";
+            karaage.style.display = "block";
+        }
+        spawnKaraage();
+
+        // スティック操作ロジック
+        joyArea.addEventListener('touchstart', (e) => { isMoving = true; moveStick(e); });
+        joyArea.addEventListener('touchmove', (e) => { moveStick(e); });
+        joyArea.addEventListener('touchend', () => {
+            isMoving = false;
+            joyX = 0; joyY = 0;
+            stick.style.left = "50%"; stick.style.top = "50%";
+        });
+
+        function moveStick(e) {
+            const touch = e.touches[0];
+            const rect = joyArea.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const distance = Math.min(Math.hypot(dx, dy), 60);
+            const angle = Math.atan2(dy, dx);
+            
+            joyX = (Math.cos(angle) * distance) / 60;
+            joyY = (Math.sin(angle) * distance) / 60;
+            
+            stick.style.left = (50 + joyX * 40) + "%";
+            stick.style.top = (50 + joyY * 40) + "%";
+        }
+
+        function gameLoop() {
+            if (isMoving) {
+                pX += joyX * 6; // 6 = 移動スピード
+                pY += joyY * 6;
+                // 画面端の制限
+                pX = Math.max(30, Math.min(window.innerWidth - 30, pX));
+                pY = Math.max(60, Math.min(window.innerHeight - 150, pY));
+            }
+            char.style.left = pX + "px";
+            char.style.top = pY + "px";
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+
+        document.getElementById('btn').onclick = () => {
+            let dist = Math.hypot(pX - kX, pY - kY);
+            if (dist < 70) {
+                fullness += 20;
+                status.innerText = `満腹度: ${fullness}%`;
+                char.innerText = "😋";
                 karaage.style.display = "none";
+                setTimeout(() => { 
+                    char.innerText = fullness >= 100 ? "🈵" : "👨‍🍳"; 
+                    if(fullness < 100) spawnKaraage();
+                }, 300);
+            }
+        };
+    </script>
+</body>
+</html>
                 
                 setTimeout(() => { 
                     char.innerText = fullness >= 100 ? "🈵" : "👨‍🍳"; 
