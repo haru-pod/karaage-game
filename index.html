@@ -12,7 +12,6 @@
             background-size: 60px 60px; background-position: 0 0, 30px 30px;
             overflow: hidden; font-family: 'Arial Black', sans-serif; touch-action: none;
         }
-        /* 1. タイトルバー */
         #order-ui { 
             width: 100%; height: 60px; background: #222; color: #fff; 
             display: flex; align-items: center; justify-content: center; 
@@ -20,19 +19,16 @@
         }
         #status { color: #5d4037; font-weight: bold; position: fixed; top: 70px; width: 100%; font-size: 22px; z-index: 100; }
         
-        /* 4. キャラクター(😎) と 唐揚げ(🍗) */
-        #char { font-size: 60px; position: absolute; z-index: 10; width: 60px; height: 60px; line-height: 60px; transform: translate(-50%, -50%); pointer-events: none; }
-        #karaage { font-size: 45px; position: absolute; display: none; width: 50px; height: 50px; transform: translate(-50%, -50%); z-index: 5; }
+        #char { font-size: 70px; position: absolute; z-index: 10; width: 70px; height: 70px; line-height: 70px; transform: translate(-50%, -50%); pointer-events: none; }
+        #karaage { font-size: 50px; position: absolute; display: none; width: 60px; height: 60px; transform: translate(-50%, -50%); z-index: 5; }
 
-        /* 2. 仮想スティック（少し重めに調整） */
-        #joystick-area { position: fixed; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(0,0,0,0.2); border-radius: 50%; z-index: 200; }
-        #joystick-stick { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: #444; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 4px rgba(0,0,0,0.3); }
+        #joystick-area { position: fixed; bottom: 30px; left: 30px; width: 130px; height: 130px; background: rgba(0,0,0,0.25); border-radius: 50%; z-index: 200; }
+        #joystick-stick { position: absolute; top: 50%; left: 50%; width: 55px; height: 55px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 4px rgba(0,0,0,0.3); }
 
-        /* 右下：アクションボタン */
         #action-btn-area { position: fixed; bottom: 40px; right: 30px; z-index: 200; }
         #btn { 
-            width: 110px; height: 110px; background: #D2691E; color: white; 
-            border-radius: 50%; border: 5px solid #fff; font-size: 20px; font-weight: bold; 
+            width: 120px; height: 120px; background: #D2691E; color: white; 
+            border-radius: 50%; border: 6px solid #fff; font-size: 22px; font-weight: bold; 
             box-shadow: 0 8px #5d4037; cursor: pointer;
         }
         #btn:active { transform: scale(0.9); box-shadow: 0 2px #5d4037; }
@@ -56,7 +52,7 @@
         let kX = 0, kY = 0;
         let joyX = 0, joyY = 0; 
         let isMoving = false;
-        let moveSpeed = 5; // 2. スティックの重み（速度）を調整
+        let moveSpeed = 4.5; // スティックの最高速度を少し抑えて「重み」を出す
 
         const char = document.getElementById('char');
         const karaage = document.getElementById('karaage');
@@ -65,15 +61,14 @@
         const joyArea = document.getElementById('joystick-area');
 
         function spawnKaraage() {
-            kX = Math.random() * (window.innerWidth - 100) + 50;
-            kY = Math.random() * (window.innerHeight - 300) + 150;
+            kX = Math.random() * (window.innerWidth - 120) + 60;
+            kY = Math.random() * (window.innerHeight - 350) + 180;
             karaage.style.left = kX + "px";
             karaage.style.top = kY + "px";
             karaage.style.display = "block";
         }
         spawnKaraage();
 
-        // ジョイスティック制御
         const handleMove = (e) => {
             if (!isMoving) return;
             const touch = e.touches[0];
@@ -83,10 +78,11 @@
             
             let dx = touch.clientX - centerX;
             let dy = touch.clientY - centerY;
-            const maxRadius = 50;
+            const maxRadius = 60;
             const distance = Math.min(Math.hypot(dx, dy), maxRadius);
             const angle = Math.atan2(dy, dx);
             
+            // 入力値を少し鈍くして、繊細な操作感に
             joyX = (Math.cos(angle) * distance) / maxRadius;
             joyY = (Math.sin(angle) * distance) / maxRadius;
             
@@ -102,14 +98,14 @@
             stick.style.left = "50%"; stick.style.top = "50%";
         });
 
-        // 3. 食べる判定の修正を加えたメインループ
         function gameLoop() {
             if (isMoving) {
                 pX += joyX * moveSpeed;
                 pY += joyY * moveSpeed;
                 
-                pX = Math.max(30, Math.min(window.innerWidth - 30, pX));
-                pY = Math.max(100, Math.min(window.innerHeight - 150, pY));
+                // 画面端の制限を強化（はみ出し防止）
+                pX = Math.max(40, Math.min(window.innerWidth - 40, pX));
+                pY = Math.max(120, Math.min(window.innerHeight - 180, pY));
             }
             char.style.left = pX + "px";
             char.style.top = pY + "px";
@@ -118,28 +114,27 @@
         gameLoop();
 
         document.getElementById('btn').onclick = () => {
-            // 距離判定を少し甘くして食べやすく調整
+            // 判定範囲を「110」まで大幅拡大（かなり優しくなりました）
             let dist = Math.hypot(pX - kX, pY - kY);
-            if (dist < 80) { 
+            if (dist < 110) { 
                 fullness += 10;
                 if (fullness > 100) fullness = 100;
                 status.innerText = `満腹度: ${fullness}%`;
                 
-                char.innerText = "😋"; // 食べる顔
+                char.innerText = "😋"; 
                 karaage.style.display = "none";
                 
                 setTimeout(() => { 
                     if (fullness >= 100) {
                         char.innerText = "😎✨"; 
-                        status.innerText = "MISSION COMPLETE!";
+                        status.innerText = "FULL COMPLETED!";
                     } else {
                         char.innerText = "😎"; 
                         spawnKaraage();
                     }
-                }, 300);
+                }, 250);
             } else {
-                // 遠すぎる時のリアクション
-                const originalChar = char.innerText;
+                // 失敗した時も少し悔しがる演出
                 char.innerText = "💢"; 
                 setTimeout(() => { if(fullness < 100) char.innerText = "😎"; }, 300);
             }
