@@ -2,57 +2,90 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>唐揚げパクパク</title>
-  <style>
-    body { 
-        margin: 0; 
-        /* 床をタイル状にする魔法の命令 */
-        background-color: #d2b48c;
-        background-image: 
-            linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887), 
-            linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887);
-        background-size: 60px 60px;
-        background-position: 0 0, 30px 30px;
-    }
-    
-    /* 厨房のカウンター（机）っぽくする */
-    #counter {
-        width: 100%; height: 100px;
-        background: #8b4513;
-        border-bottom: 10px solid #5d4037;
-        position: fixed; bottom: 0;
-    }
-</style>
+    <title>唐揚げパニック：移動編</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; text-align: center; 
+            background-color: #d2b48c;
+            background-image: linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887), linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887);
+            background-size: 60px 60px; background-position: 0 0, 30px 30px;
+            overflow: hidden; font-family: sans-serif; touch-action: none;
+        }
+        #order-ui { width: 100%; height: 60px; background: rgba(0,0,0,0.7); color: white; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; }
+        
+        /* キャラクター */
+        #char { font-size: 60px; position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%); transition: left 0.1s linear; z-index: 10; }
+        
+        /* 唐揚げ */
+        #karaage { font-size: 40px; position: absolute; bottom: 160px; display: none; }
+
+        /* 操作パネル */
+        #control-panel { width: 100%; height: 140px; background: #8b4513; position: fixed; bottom: 0; border-top: 5px solid #5d4037; display: flex; align-items: center; justify-content: space-around; }
+        #status { color: white; font-weight: bold; position: fixed; bottom: 145px; width: 100%; text-shadow: 1px 1px 2px black; }
+        #btn { width: 100px; height: 100px; background: #D2691E; color: white; border-radius: 50%; border: 3px solid #fff; font-size: 16px; font-weight: bold; }
+    </style>
 </head>
 <body>
+    <div id="order-ui">🍴 注文：唐揚げを拾って食べろ！</div>
     <div id="status">満腹度: 0%</div>
-    <div id="char">( ・u・ )</div>
-    <button id="btn">唐揚げを<br>食べる！</button>
+    <div id="karaage">🍗</div>
+    <div id="char">👨‍🍳</div>
+    
+    <div id="control-panel">
+        <div style="color: #ccc; font-size: 12px;">画面の左右を<br>タッチで移動</div>
+        <button id="btn">食べる！</button>
+    </div>
 
     <script>
         let fullness = 0;
+        let charX = 50; // キャラクターの横位置（%）
+        let karaageX = 20; // 唐揚げの横位置（%）
+        let hasKaraage = false;
+
         const char = document.getElementById('char');
+        const karaage = document.getElementById('karaage');
         const status = document.getElementById('status');
         const btn = document.getElementById('btn');
 
-        // クリック（タップ）した時の処理
+        // 唐揚げをランダムに出現させる
+        function spawnKaraage() {
+            karaageX = Math.random() * 80 + 10;
+            karaage.style.left = karaageX + "%";
+            karaage.style.display = "block";
+            hasKaraage = true;
+        }
+        spawnKaraage();
+
+        // 移動処理（画面タッチ）
+        window.addEventListener('touchstart', (e) => {
+            const touchX = e.touches[0].clientX;
+            const screenW = window.innerWidth;
+            if (touchX < screenW / 2) {
+                charX = Math.max(10, charX - 10); // 左へ
+            } else {
+                charX = Math.min(90, charX + 10); // 右へ
+            }
+            char.style.left = charX + "%";
+        });
+
+        // 食べるボタン
         btn.onclick = () => {
-            if (fullness < 100) {
-                fullness += 5;
+            // キャラと唐揚げが近いか判定（簡易判定）
+            let diff = Math.abs(charX - karaageX);
+            if (hasKaraage && diff < 15) {
+                fullness += 20;
                 status.innerText = `満腹度: ${fullness}%`;
+                char.innerText = "😋";
+                karaage.style.display = "none";
+                hasKaraage = false;
                 
-                // 食べる時の表情
-                char.innerText = "( > u < )";
-                
-                // 0.2秒後に表情を戻す
                 setTimeout(() => { 
-                    if (fullness >= 100) {
-                        char.innerText = "(๑´ڡ`๑) 完食！";
-                        status.innerText = "お腹いっぱい！";
-                    } else {
-                        char.innerText = "( ・u・ )"; 
-                    }
-                }, 200);
+                    char.innerText = fullness >= 100 ? "🈵" : "👨‍🍳"; 
+                    if(fullness < 100) spawnKaraage(); // 次の唐揚げ
+                }, 300);
+            } else {
+                char.innerText = "❓"; // 遠すぎると食べられない
+                setTimeout(() => { char.innerText = "👨‍🍳"; }, 300);
             }
         };
     </script>
