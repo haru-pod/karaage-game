@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>唐揚げパクパク</title>
+    <style>
+        body { margin: 0; text-align: center; background: #FFF9E1; overflow: hidden; touch-action: manipulation; font-family: sans-serif; }
+        #char { font-size: 80px; margin-top: 50px; transition: 0.1s; }
+        #status { font-weight: bold; font-size: 24px; margin-top: 20px; color: #5D4037; }
+        #btn { 
+            width: 220px; height: 220px; background: #D2691E; color: white; 
+            border-radius: 50%; border: none; font-size: 28px; font-weight: bold;
+            margin-top: 40px; box-shadow: 0 10px #8B4513; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #btn:active { transform: translateY(5px); box-shadow: 0 5px #8B4513; }
+    </style>
+</head>
+<body>
+    <div id="status">満腹度: 0%</div>
+    <div id="char">( ・u・ )</div>
+    <button id="btn">唐揚げを<br>食べる！</button>
+
+    <script>
+        let fullness = 0;
+        const char = document.getElementById('char');
+        const status = document.getElementById('status');
+        const btn = document.getElementById('btn');
+
+        // クリック（タップ）した時の処理
+        btn.onclick = () => {
+            if (fullness < 100) {
+                fullness += 5;
+                status.innerText = `満腹度: ${fullness}%`;
+                
+                // 食べる時の表情
+                char.innerText = "( > u < )";
+                
+                // 0.2秒後に表情を戻す
+                setTimeout(() => { 
+                    if (fullness >= 100) {
+                        char.innerText = "(๑´ڡ`๑) 完食！";
+                        status.innerText = "お腹いっぱい！";
+                    } else {
+                        char.innerText = "( ・u・ )"; 
+                    }
+                }, 200);
+            }
+        };
+    </script>
+</body>
+</html>
