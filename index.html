@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <title>KARAAGE EATER</title>
+    <meta property="og:title" content="KARAAGE EATER">
+    <meta property="og:description" content="30秒以内に唐揚げを食い尽くせ！">
+    <meta name="apple-mobile-web-app-title" content="KARAAGE EATER">
+
     <style>
         html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; touch-action: none; }
         body { 
@@ -26,16 +31,18 @@
         #action-btn-area { position: fixed; bottom: 35px; right: 25px; z-index: 200; display: none; }
         #btn { width: 110px; height: 110px; background: #D2691E; color: white; border-radius: 50%; border: 5px solid #fff; font-size: 18px; font-weight: bold; box-shadow: 0 6px #5d4037; }
 
-        /* オーバーレイ共通 */
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .level-btn { width: 220px; padding: 12px; margin: 8px; font-size: 20px; border-radius: 8px; border: none; font-weight: bold; }
+        /* オーバーレイ */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .game-logo { font-size: 42px; color: #FFD700; text-shadow: 4px 4px 0px #D2691E; margin-bottom: 10px; letter-spacing: -1px; }
+        .menu-title { font-size: 24px; color: #fff; margin-bottom: 20px; border-bottom: 2px solid #fff; padding-bottom: 5px; }
+        .level-btn { width: 240px; padding: 14px; margin: 10px; font-size: 22px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px rgba(0,0,0,0.3); }
         .lv-komori { background: #4CAF50; color: white; }
         .lv-namimori { background: #FFC107; color: #000; }
         .lv-oomori { background: #FF5722; color: white; }
         .lv-tokumori { background: #9C27B0; color: white; display: none; }
         
-        #ready-count { font-size: 120px; color: #FF4500; }
-        #hint-text { font-size: 18px; color: #FFD700; margin-bottom: 20px; }
+        #ready-count { font-size: 140px; color: #FF4500; text-shadow: 5px 5px 0px #fff; }
+        #hint-text { font-size: 20px; color: #FFD700; margin-bottom: 30px; min-height: 1.5em; }
     </style>
 </head>
 <body>
@@ -55,16 +62,21 @@
     <div id="action-btn-area"><button id="btn">食べる！</button></div>
 
     <div id="overlay">
-        <h1 id="overlay-title">SELECT MENU</h1>
+        <div id="logo-container">
+            <div class="game-logo">KARAAGE EATER</div>
+        </div>
+        <div id="menu-title-ui" class="menu-title">ご注文</div>
+        
         <div id="hint-text"></div>
         <div id="ready-count" style="display:none">5</div>
+        
         <div id="menu-list">
             <button class="level-btn lv-komori" onclick="selectLevel('小盛')">小盛 (10個)</button>
             <button class="level-btn lv-namimori" onclick="selectLevel('並盛')">並盛 (12個)</button>
             <button class="level-btn lv-oomori" onclick="selectLevel('大盛')">大盛 (15個)</button>
             <button id="tokumori-btn" class="level-btn lv-tokumori" onclick="selectLevel('特盛')">特盛 (20個)</button>
         </div>
-        <button id="retry-btn" class="level-btn" style="display:none; background:#555; color:white;" onclick="showMenu()">MENUに戻る</button>
+        <button id="retry-btn" class="level-btn" style="display:none; background:#555; color:white;" onclick="showMenu()">ご注文に戻る</button>
     </div>
 
     <script>
@@ -77,12 +89,14 @@
 
         const char = document.getElementById('char');
         const items = { k: document.getElementById('karaage'), s: document.getElementById('spicy'), b: document.getElementById('big-karaage'), c: document.getElementById('clock-item') };
-        const ui = { timer: document.getElementById('timer-ui'), count: document.getElementById('count-ui'), overlay: document.getElementById('overlay'), hint: document.getElementById('hint-text'), title: document.getElementById('overlay-title'), countDisp: document.getElementById('ready-count'), menuList: document.getElementById('menu-list'), retryBtn: document.getElementById('retry-btn'), tokumori: document.getElementById('tokumori-btn') };
+        const ui = { timer: document.getElementById('timer-ui'), count: document.getElementById('count-ui'), overlay: document.getElementById('overlay'), hint: document.getElementById('hint-text'), logo: document.getElementById('logo-container'), menuTitle: document.getElementById('menu-title-ui'), countDisp: document.getElementById('ready-count'), menuList: document.getElementById('menu-list'), retryBtn: document.getElementById('retry-btn'), tokumori: document.getElementById('tokumori-btn') };
 
         function showMenu() {
             gameState = "MENU";
             ui.overlay.style.display = "flex";
-            ui.title.style.display = "block"; ui.title.innerText = "SELECT MENU";
+            ui.logo.style.display = "block";
+            ui.menuTitle.style.display = "block";
+            ui.menuTitle.innerText = "ご注文";
             ui.menuList.style.display = "block";
             ui.hint.innerText = "";
             ui.countDisp.style.display = "none";
@@ -93,7 +107,8 @@
         function selectLevel(lv) {
             currentLevel = lv;
             ui.menuList.style.display = "none";
-            ui.title.innerText = lv;
+            ui.logo.style.display = "none";
+            ui.menuTitle.innerText = lv;
             
             const hints = {
                 '小盛': '完食を目指そう！',
@@ -103,7 +118,6 @@
             };
             ui.hint.innerText = hints[lv];
             
-            // カウントダウン
             ui.countDisp.style.display = "block";
             let c = 5;
             ui.countDisp.innerText = c;
@@ -140,23 +154,16 @@
 
         function spawnFood() {
             Object.values(items).forEach(i => i.style.display = "none");
-            
-            // 特大が出るか判定（大盛・特盛のみ）
             let bigAppears = false;
             if(bigLeft > 0 && fullness >= 3 && Math.random() < 0.35) {
                 bx = Math.random()*(window.innerWidth-100)+50; by = Math.random()*(window.innerHeight-300)+150;
                 items.b.style.left = bx+"px"; items.b.style.top = by+"px"; items.b.style.display = "block";
-                bigTapCount = 5;
-                bigAppears = true;
+                bigTapCount = 5; bigAppears = true;
             }
-
-            // 特大が出ない時だけ普通のを出す
             if(!bigAppears) {
                 kX = Math.random()*(window.innerWidth-100)+50; kY = Math.random()*(window.innerHeight-300)+150;
                 items.k.style.left = kX+"px"; items.k.style.top = kY+"px"; items.k.style.display = "block";
             }
-            
-            // 激辛は特大がいてもいなくても出る
             if(spicyLeft > 0 && Math.random() < 0.45) {
                 sx = Math.random()*(window.innerWidth-100)+50; sy = Math.random()*(window.innerHeight-300)+150;
                 items.s.style.left = sx+"px"; items.s.style.top = sy+"px"; items.s.style.display = "block";
@@ -183,19 +190,19 @@
             gameState = "FINISH";
             clearInterval(timerId);
             ui.overlay.style.display = "flex";
+            ui.logo.style.display = "block";
             ui.countDisp.style.display = "none";
             ui.retryBtn.style.display = "block";
             if(isWin) {
-                ui.title.innerText = "CLEAR!";
+                ui.menuTitle.innerText = "CLEAR!";
                 ui.hint.innerText = `${currentLevel} 完食！お見事！`;
                 if(currentLevel === "大盛") tokumoriUnlocked = true;
             } else {
-                ui.title.innerText = "GAME OVER";
+                ui.menuTitle.innerText = "GAME OVER";
                 ui.hint.innerText = "時間切れだ！リベンジしよう。";
             }
         }
 
-        // スティック操作
         const joyArea = document.getElementById('joystick-area');
         const stick = document.getElementById('joystick-stick');
         joyArea.addEventListener('touchstart', (e) => { isMoving = true; });
