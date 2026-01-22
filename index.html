@@ -28,8 +28,15 @@
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
         .game-logo { font-size: 42px; color: #FFD700; text-shadow: 4px 4px 0px #D2691E; margin-bottom: 20px; cursor: pointer; }
         .menu-title { font-size: 24px; color: #fff; margin-top: 10px; margin-bottom: 10px; border-bottom: 2px solid #fff; padding-bottom: 5px; }
-        .level-btn { width: 240px; padding: 14px; margin: 8px; font-size: 22px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
-        .lv-komori { background: #4CAF50; } .lv-namimori { background: #FFC107; color:#000; } .lv-oomori { background: #FF5722; } .lv-tokumori { background: #9C27B0; display: none; } .lv-bonus { background: #E91E63; display: none; }
+        
+        /* ステージ選択ボタンの配色修正 */
+        .level-btn { width: 240px; padding: 14px; margin: 8px; font-size: 22px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 5px rgba(0,0,0,0.4); }
+        .lv-komori { background: #4CAF50; color: #fff; border: 2px solid #2e7d32; }
+        .lv-namimori { background: #FFC107; color: #333; border: 2px solid #ffa000; } /* 黒文字 */
+        .lv-oomori { background: #FF5722; color: #fff; border: 2px solid #d84315; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); } /* 影を追加 */
+        .lv-tokumori { background: #9C27B0; color: #fff; border: 2px solid #6a1b9a; display: none; }
+        .lv-bonus { background: #E91E63; color: #fff; border: 2px solid #ad1457; display: none; }
+        
         #ready-count { font-size: 140px; color: #FF4500; text-shadow: 5px 5px 0px #fff; }
         #hint-text { font-size: 20px; color: #FFD700; margin-bottom: 30px; min-height: 2.5em; width: 85%; line-height: 1.4; }
     </style>
@@ -68,10 +75,11 @@
     </div>
 
     <script>
+        /* (中略：JavaScriptロジックは最新のものを維持) */
         let fullness = 0, targetFullness = 10, timeLeft = 30;
         let gameState = "MENU", currentLevel = "";
         let pX, pY, kX = 0, kY = 0, sx, sy, bx, by, cx, cy;
-        let lastKX = 0, lastKY = 0; // 【修正】直前の唐揚げ位置を保存
+        let lastKX = 0, lastKY = 0; 
         let joyX = 0, joyY = 0, isMoving = false, isStunned = false;
         let timerId = null, bigTapCount = 0, tokumoriUnlocked = false, bonusUnlocked = false;
         let spicyChance = 0, spicyLeft = 0, bigLeft = 0, clockUsed = false;
@@ -114,7 +122,7 @@
         function startGame(lv) {
             fullness = 0; timeLeft = 30; isStunned = false; isChoking = false; chokeMeter = 0; clockUsed = false;
             pX = window.innerWidth / 2; pY = window.innerHeight / 2;
-            lastKX = 0; lastKY = 0; // 初期化
+            lastKX = 0; lastKY = 0; 
             updateBtnState("eat");
             if(lv==='小盛'){ targetFullness=10; spicyChance=0; bigLeft=0; }
             else if(lv==='並盛'){ targetFullness=12; spicyChance=3; bigLeft=0; }
@@ -139,31 +147,16 @@
             });
         }
 
-        /**
-         * 改良版：座標生成ロジック
-         * @param {Array} existingPoints 重なりを避ける既存の座標リスト
-         * @param {Object} farFromPoint この点からも一定以上離す
-         */
         function getSafePos(existingPoints = [], farFromPoint = null) {
             let x, y, tooClose, attempts = 0;
-            const minDistItems = 100; // アイテム同士の最小距離
-            const minDistLast = 150;  // 直前の唐揚げとの最小距離（【重要】）
-
+            const minDistItems = 100;
+            const minDistLast = 150; 
             do {
                 tooClose = false;
                 x = Math.random() * (window.innerWidth - 100) + 50;
                 y = Math.random() * (window.innerHeight - 350) + 150;
-
-                // 既存のアイテム(激辛等)との距離チェック
-                for (let p of existingPoints) {
-                    if (Math.hypot(x - p.x, y - p.y) < minDistItems) tooClose = true;
-                }
-
-                // 直前の唐揚げ位置との距離チェック（連打防止）
-                if (farFromPoint && Math.hypot(x - farFromPoint.x, y - farFromPoint.y) < minDistLast) {
-                    tooClose = true;
-                }
-
+                for (let p of existingPoints) { if (Math.hypot(x - p.x, y - p.y) < minDistItems) tooClose = true; }
+                if (farFromPoint && Math.hypot(x - farFromPoint.x, y - farFromPoint.y) < minDistLast) tooClose = true;
                 attempts++;
             } while (tooClose && attempts < 50);
             return { x, y };
@@ -172,25 +165,15 @@
         function spawnFood() {
             Object.values(items).forEach(i => i.style.display = "none");
             let posLog = [];
-
-            // 1. 激辛の配置
             if(spicyLeft > 0 && Math.random() < 0.45) {
-                let p = getSafePos([], null); 
-                sx=p.x; sy=p.y;
+                let p = getSafePos([], null); sx=p.x; sy=p.y;
                 items.s.style.left = sx+"px"; items.s.style.top = sy+"px"; items.s.style.display = "block";
                 spicyLeft--; posLog.push({x:sx, y:sy});
             }
-
-            // 2. 唐揚げ/特大の配置（激辛および【直前の唐揚げ】から離す）
             let bigAppears = (bigLeft > 0 && fullness >= 3 && Math.random() < 0.35);
             let fp = getSafePos(posLog, {x: lastKX, y: lastKY});
-
-            if(bigAppears) {
-                bx=fp.x; by=fp.y; items.b.style.left = bx+"px"; items.b.style.top = by+"px"; items.b.style.display = "block";
-                bigTapCount = 5;
-            } else {
-                kX=fp.x; kY=fp.y; items.k.style.left = kX+"px"; items.k.style.top = kY+"px"; items.k.style.display = "block";
-            }
+            if(bigAppears) { bx=fp.x; by=fp.y; items.b.style.left = bx+"px"; items.b.style.top = by+"px"; items.b.style.display = "block"; bigTapCount = 5; }
+            else { kX=fp.x; kY=fp.y; items.k.style.left = kX+"px"; items.k.style.top = kY+"px"; items.k.style.display = "block"; }
         }
 
         function updateBtnState(type) {
@@ -216,9 +199,7 @@
                 if(gameState !== "PLAYING") return;
                 timeLeft--;
                 if(currentLevel === "特盛" && timeLeft === 15 && !clockUsed) {
-                    // 時計も現在の唐揚げから離れた場所に
-                    let cp = getSafePos([{x: kX, y: kY}], null);
-                    cx = cp.x; cy = cp.y;
+                    let cp = getSafePos([{x: kX, y: kY}], null); cx = cp.x; cy = cp.y;
                     items.c.style.left = cx+"px"; items.c.style.top = cy+"px"; items.c.style.display = "block";
                     setTimeout(() => { items.c.style.display = "none"; }, 5000);
                 }
@@ -261,15 +242,8 @@
             if(gameState !== "PLAYING" || isStunned) return;
             if(isChoking) {
                 let drank = false;
-                waters.forEach(w => { 
-                    if(w.style.display !== "none" && Math.hypot(pX - parseFloat(w.style.left), pY - parseFloat(w.style.top)) < 75) {
-                        w.style.display = "none"; drank = true;
-                    }
-                });
-                if(drank) { 
-                    isChoking = false; chokeMeter = 0; char.innerText = "😎"; updateBtnState("eat");
-                    spawnFood(); 
-                }
+                waters.forEach(w => { if(w.style.display !== "none" && Math.hypot(pX - parseFloat(w.style.left), pY - parseFloat(w.style.top)) < 75) { w.style.display = "none"; drank = true; } });
+                if(drank) { isChoking = false; chokeMeter = 0; char.innerText = "😎"; updateBtnState("eat"); spawnFood(); }
                 return;
             }
             if(items.c.style.display === "block" && Math.hypot(pX-cx, pY-cy) < 75) { timeLeft += 7; items.c.style.display = "none"; clockUsed = true; return; }
@@ -277,19 +251,13 @@
                 isStunned = true; char.innerText = "😭"; items.s.style.display = "none";
                 setTimeout(() => { if(gameState==="PLAYING") { isStunned = false; char.innerText = "😎"; } }, 3000); return;
             }
-            
             let ate = false;
             if(items.b.style.display === "block" && Math.hypot(pX-bx, pY-by) < 85) {
                 bigTapCount--; char.innerText = "😲";
-                if(bigTapCount <= 0) { 
-                    lastKX = bx; lastKY = by; // 【修正】特大の位置を保存
-                    fullness++; bigLeft--; items.b.style.display = "none"; ate = true; 
-                }
+                if(bigTapCount <= 0) { lastKX = bx; lastKY = by; fullness++; bigLeft--; items.b.style.display = "none"; ate = true; }
             } else if(items.k.style.display === "block" && Math.hypot(pX-kX, pY-kY) < 85) {
-                lastKX = kX; lastKY = kY; // 【修正】通常唐揚げの位置を保存
-                fullness++; char.innerText = "😋"; items.k.style.display = "none"; ate = true;
+                lastKX = kX; lastKY = kY; fullness++; char.innerText = "😋"; items.k.style.display = "none"; ate = true;
             }
-            
             if(ate) {
                 if(currentLevel === '食べ放題') {
                     chokeMeter++;
