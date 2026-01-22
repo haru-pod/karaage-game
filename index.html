@@ -7,10 +7,8 @@
     <title>KARAAGE EATER</title>
     <meta property="og:title" content="KARAAGE EATER">
     <meta property="og:description" content="30秒以内に唐揚げを食い尽くせ！">
-    <meta name="apple-mobile-web-app-title" content="KARAAGE EATER">
 
     <style>
-        /* 画面スクロールとバウンスを完全に防止 */
         html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; touch-action: none; }
         body { 
             margin: 0; padding: 0; text-align: center; 
@@ -19,17 +17,13 @@
             background-size: 60px 60px; background-position: 0 0, 30px 30px;
             font-family: 'Arial Black', sans-serif;
         }
-
-        /* ヘッダー・情報バー */
         #header { width: 100%; height: 50px; background: #222; color: #fff; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; z-index: 100; font-size: 20px; }
         #info-bar { position: fixed; top: 55px; width: 100%; z-index: 100; display: flex; justify-content: space-around; font-size: 16px; color: #5d4037; font-weight: bold; background: rgba(255,255,255,0.4); border-radius: 5px; }
         
-        /* ゲーム内要素 */
         #char { font-size: 60px; position: absolute; z-index: 10; transform: translate(-50%, -50%); pointer-events: none; display: none; }
         .food { font-size: 45px; position: absolute; transform: translate(-50%, -50%); display: none; }
         .water { font-size: 45px; position: absolute; transform: translate(-50%, -50%); z-index: 5; display: none; }
 
-        /* 操作UI (ジョイスティック & アクションボタン) */
         #joystick-area { position: fixed; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(0,0,0,0.2); border-radius: 50%; z-index: 200; display: none; }
         #joystick-stick { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); }
         #action-btn-area { position: fixed; bottom: 35px; right: 25px; z-index: 200; display: none; }
@@ -38,25 +32,18 @@
         .btn-drink { background: #1E90FF; }
         #btn:active { transform: scale(0.9); }
 
-        /* メニュー画面 (オーバーレイ) */
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
         .game-logo { font-size: 42px; color: #FFD700; text-shadow: 4px 4px 0px #D2691E; margin-bottom: 20px; cursor: pointer; }
         .menu-title { font-size: 24px; color: #fff; margin-top: 10px; margin-bottom: 10px; border-bottom: 2px solid #fff; padding-bottom: 5px; }
-        .level-btn { width: 240px; padding: 14px; margin: 8px; font-size: 22px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px rgba(0,0,0,0.3); }
-        .lv-komori { background: #4CAF50; color: white; }
-        .lv-namimori { background: #FFC107; color: #000; }
-        .lv-oomori { background: #FF5722; color: white; }
-        .lv-tokumori { background: #9C27B0; color: white; display: none; }
-        .lv-bonus { background: #E91E63; color: white; display: none; }
+        .level-btn { width: 240px; padding: 14px; margin: 8px; font-size: 22px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .lv-komori { background: #4CAF50; } .lv-namimori { background: #FFC107; color:#000; } .lv-oomori { background: #FF5722; } .lv-tokumori { background: #9C27B0; display: none; } .lv-bonus { background: #E91E63; display: none; }
         
-        /* カウントダウン & ヒント */
         #ready-count { font-size: 140px; color: #FF4500; text-shadow: 5px 5px 0px #fff; }
         #hint-text { font-size: 20px; color: #FFD700; margin-bottom: 30px; min-height: 2.5em; width: 85%; line-height: 1.4; }
     </style>
 </head>
 <body>
     <div id="header">KARAAGE EATER</div>
-    
     <div id="info-bar">
         <div id="timer-ui">TIME: 30</div>
         <div id="count-ui">EAT: 0</div>
@@ -66,8 +53,8 @@
     <div id="spicy" class="food">🌶️</div>
     <div id="big-karaage" class="food">🍖</div>
     <div id="clock-item" class="food">⏰</div>
-    <div id="w1" class="water">🚰</div><div id="w2" class="water">🚰</div>
-    <div id="w3" class="water">🚰</div><div id="w4" class="water">🚰</div>
+    <div id="w1" class="water">🥛</div><div id="w2" class="water">🥛</div>
+    <div id="w3" class="water">🥛</div><div id="w4" class="water">🥛</div>
     <div id="char">😎</div>
     
     <div id="joystick-area"><div id="joystick-stick"></div></div>
@@ -78,7 +65,6 @@
         <div id="menu-title-ui" class="menu-title">ご注文</div>
         <div id="hint-text"></div>
         <div id="ready-count" style="display:none">5</div>
-        
         <div id="menu-list" style="display: flex; flex-direction: column; align-items: center;">
             <button class="level-btn lv-komori" onclick="selectLevel('小盛')">小盛 (10個)</button>
             <button class="level-btn lv-namimori" onclick="selectLevel('並盛')">並盛 (12個)</button>
@@ -86,7 +72,6 @@
             <button id="tokumori-btn" class="level-btn lv-tokumori" onclick="selectLevel('特盛')">特盛 (20個)</button>
             <button id="bonus-btn" class="level-btn lv-bonus" onclick="selectLevel('食べ放題')">食べ放題 (無限)</button>
         </div>
-        
         <div id="finish-options" style="display:none; flex-direction:column; align-items:center;">
             <button id="quick-retry-btn" class="level-btn" style="background:#ff4500; color:white;" onclick="selectLevel(currentLevel)">再注文（RETRY）</button>
             <button class="level-btn" style="background:#555; color:white;" onclick="showMenu()">ご注文に戻る</button>
@@ -94,9 +79,6 @@
     </div>
 
     <script>
-        /**
-         * 1. 変数宣言
-         */
         let fullness = 0, targetFullness = 10, timeLeft = 30;
         let gameState = "MENU", currentLevel = "";
         let pX, pY, kX, kY, sx, sy, bx, by, cx, cy;
@@ -112,9 +94,6 @@
         const ui = { timer: document.getElementById('timer-ui'), count: document.getElementById('count-ui'), overlay: document.getElementById('overlay'), hint: document.getElementById('hint-text'), menuTitle: document.getElementById('menu-title-ui'), countDisp: document.getElementById('ready-count'), menuList: document.getElementById('menu-list'), finishOptions: document.getElementById('finish-options'), tokumori: document.getElementById('tokumori-btn'), bonus: document.getElementById('bonus-btn'), retryBtn: document.getElementById('quick-retry-btn') };
         const mainBtn = document.getElementById('btn');
 
-        /**
-         * 2. システム関数 (デバッグ・UI)
-         */
         function debugUnlock() {
             debugTapCount++;
             if (debugTapCount >= 5) {
@@ -142,66 +121,33 @@
             let ci = setInterval(() => { c--; ui.countDisp.innerText = c; if(c <= 0) { clearInterval(ci); startGame(lv); } }, 1000);
         }
 
-        /**
-         * 3. ゲーム管理 (スタート・エンド)
-         */
         function startGame(lv) {
             fullness = 0; timeLeft = 30; isStunned = false; isChoking = false; chokeMeter = 0; clockUsed = false;
             pX = window.innerWidth / 2; pY = window.innerHeight / 2;
             updateBtnState("eat");
-            
             if(lv==='小盛'){ targetFullness=10; spicyChance=0; bigLeft=0; }
             else if(lv==='並盛'){ targetFullness=12; spicyChance=3; bigLeft=0; }
             else if(lv==='大盛'){ targetFullness=15; spicyChance=5; bigLeft=2; }
             else if(lv==='特盛'){ targetFullness=20; spicyChance=5; bigLeft=3; }
             else if(lv==='食べ放題'){ targetFullness=999; spicyChance=0; bigLeft=0; }
-            
             spicyLeft = spicyChance;
             ui.count.innerText = lv==='食べ放題' ? `EAT: 0` : `EAT: 0/${targetFullness}`;
             ui.overlay.style.display = "none"; char.style.display = "block"; char.innerText = "😎";
-            
-            // 食べ放題時のみ水を四隅に配置
-            waters.forEach((w, i) => {
-                if(lv==='食べ放題') {
-                    const pos = [[50,120], [window.innerWidth-50, 120], [50, window.innerHeight-160], [window.innerWidth-50, window.innerHeight-160]];
-                    w.style.left = pos[i][0]+"px"; w.style.top = pos[i][1]+"px"; w.style.display = "block";
-                } else { w.style.display = "none"; }
-            });
-
+            spawnWaters(); // 水を配置
             document.getElementById('joystick-area').style.display = "block";
             document.getElementById('action-btn-area').style.display = "block";
             spawnFood(); gameState = "PLAYING"; startTimer();
         }
 
-        function endGame(isWin) {
-            gameState = "FINISH"; clearInterval(timerId);
-            ui.overlay.style.display = "flex"; ui.countDisp.style.display = "none"; ui.finishOptions.style.display = "flex";
-            
-            if(currentLevel === '食べ放題') {
-                ui.menuTitle.innerText = "結果発表";
-                let title = "";
-                if(fullness <= 10) title = "【ひよっこ食い】<br>まだまだ胃袋に余裕があるな！";
-                else if(fullness <= 20) title = "【なかなかの食漢】<br>いい食べっぷりだ、見直したぜ！";
-                else if(fullness <= 30) title = "【プロ級の胃袋】<br>あんた、もしかしてフードファイターか？";
-                else title = "【伝説の唐揚げ神】<br>恐ろしい胃袋だ…もう食うもんがねえよ！";
-                ui.hint.innerHTML = `記録：${fullness}個<br>${title}`;
-                ui.retryBtn.innerText = "再挑戦（RETRY）";
-            } else if(isWin) {
-                ui.menuTitle.innerText = "CLEAR!";
-                ui.hint.innerText = `${currentLevel} 完食！お見事！`;
-                ui.retryBtn.innerText = "もう一杯（RETRY）";
-                if(currentLevel === "大盛") tokumoriUnlocked = true;
-                if(currentLevel === "特盛") bonusUnlocked = true;
-            } else {
-                ui.menuTitle.innerText = "GAME OVER";
-                ui.hint.innerText = "時間切れだ！";
-                ui.retryBtn.innerText = "再注文（RETRY）";
-            }
+        function spawnWaters() {
+            waters.forEach((w, i) => {
+                if(currentLevel === '食べ放題') {
+                    const pos = [[50,120], [window.innerWidth-50, 120], [50, window.innerHeight-160], [window.innerWidth-50, window.innerHeight-160]];
+                    w.style.left = pos[i][0]+"px"; w.style.top = pos[i][1]+"px"; w.style.display = "block";
+                } else { w.style.display = "none"; }
+            });
         }
 
-        /**
-         * 4. ギミック・配置ロジック
-         */
         function getSafePos(existingPoints = []) {
             let x, y, tooClose, attempts = 0;
             do {
@@ -217,13 +163,11 @@
         function spawnFood() {
             Object.values(items).forEach(i => i.style.display = "none");
             let posLog = [];
-            // 激辛
             if(spicyLeft > 0 && Math.random() < 0.45) {
                 let p = getSafePos(); sx=p.x; sy=p.y;
                 items.s.style.left = sx+"px"; items.s.style.top = sy+"px"; items.s.style.display = "block";
                 spicyLeft--; posLog.push({x:sx, y:sy});
             }
-            // 唐揚げ/特大
             let bigAppears = (bigLeft > 0 && fullness >= 3 && Math.random() < 0.35);
             let fp = getSafePos(posLog);
             if(bigAppears) {
@@ -239,9 +183,6 @@
             else { mainBtn.innerText = "食べる！"; mainBtn.className = "btn-eat"; }
         }
 
-        /**
-         * 5. 操作・ループ
-         */
         const joyArea = document.getElementById('joystick-area');
         const stick = document.getElementById('joystick-stick');
         joyArea.addEventListener('touchstart', () => { isMoving = true; });
@@ -269,6 +210,25 @@
             }, 1000);
         }
 
+        function endGame(isWin) {
+            gameState = "FINISH"; clearInterval(timerId);
+            ui.overlay.style.display = "flex"; ui.countDisp.style.display = "none"; ui.finishOptions.style.display = "flex";
+            if(currentLevel === '食べ放題') {
+                ui.menuTitle.innerText = "結果発表";
+                let title = "";
+                if(fullness <= 10) title = "【ひよっこ食い】<br>まだまだ胃袋に余裕があるな！";
+                else if(fullness <= 20) title = "【なかなかの食漢】<br>いい食べっぷりだ、見直したぜ！";
+                else if(fullness <= 30) title = "【プロ級の胃袋】<br>あんた、もしかしてフードファイターか？";
+                else title = "【伝説の唐揚げ神】<br>恐ろしい胃袋だ…もう食うもんがねえよ！";
+                ui.hint.innerHTML = `記録：${fullness}個<br>${title}`;
+            } else if(isWin) {
+                ui.menuTitle.innerText = "CLEAR!";
+                ui.hint.innerText = `${currentLevel} 完食！お見事！`;
+                if(currentLevel === "大盛") tokumoriUnlocked = true;
+                if(currentLevel === "特盛") bonusUnlocked = true;
+            } else { ui.menuTitle.innerText = "GAME OVER"; ui.hint.innerText = "時間切れだ！"; }
+        }
+
         function gameLoop() {
             if (gameState === "PLAYING" && isMoving && !isStunned) {
                 pX += joyX * 6; pY += joyY * 6;
@@ -282,20 +242,27 @@
 
         mainBtn.onclick = () => {
             if(gameState !== "PLAYING" || isStunned) return;
-            // 飲む
+            // 水を飲む
             if(isChoking) {
-                let nearWater = false;
-                waters.forEach(w => { if(Math.hypot(pX - parseFloat(w.style.left), pY - parseFloat(w.style.top)) < 70) nearWater = true; });
-                if(nearWater) { isChoking = false; chokeMeter = 0; char.innerText = "😎"; updateBtnState("eat"); }
+                let drank = false;
+                waters.forEach(w => { 
+                    if(w.style.display !== "none" && Math.hypot(pX - parseFloat(w.style.left), pY - parseFloat(w.style.top)) < 75) {
+                        w.style.display = "none"; // 飲んだ水を消す
+                        drank = true;
+                    }
+                });
+                if(drank) { 
+                    isChoking = false; chokeMeter = 0; char.innerText = "😎"; 
+                    updateBtnState("eat");
+                    spawnFood(); // 【重要】ここで唐揚げを復活させる
+                }
                 return;
             }
-            // アイテム判定
-            if(items.c.style.display === "block" && Math.hypot(pX-cx, pY-cy) < 70) { timeLeft += 7; items.c.style.display = "none"; clockUsed = true; return; }
-            if(items.s.style.display === "block" && Math.hypot(pX-sx, pY-sy) < 70) {
+            if(items.c.style.display === "block" && Math.hypot(pX-cx, pY-cy) < 75) { timeLeft += 7; items.c.style.display = "none"; clockUsed = true; return; }
+            if(items.s.style.display === "block" && Math.hypot(pX-sx, pY-sy) < 75) {
                 isStunned = true; char.innerText = "😭"; items.s.style.display = "none";
                 setTimeout(() => { if(gameState==="PLAYING") { isStunned = false; char.innerText = "😎"; } }, 3000); return;
             }
-            // 食べる判定
             let ate = false;
             if(items.b.style.display === "block" && Math.hypot(pX-bx, pY-by) < 85) {
                 bigTapCount--; char.innerText = "😲";
@@ -306,7 +273,10 @@
             if(ate) {
                 if(currentLevel === '食べ放題') {
                     chokeMeter++;
-                    if(chokeMeter >= 5) { isChoking = true; char.innerText = "🤢"; updateBtnState("drink"); }
+                    if(chokeMeter >= 5) { 
+                        isChoking = true; char.innerText = "🤢"; updateBtnState("drink"); 
+                        spawnWaters(); // 【重要】水がなくなっていたら再出現させる（何度でも飲めるように）
+                    }
                     ui.count.innerText = `EAT: ${fullness}`;
                 } else {
                     ui.count.innerText = `EAT: ${fullness}/${targetFullness}`;
