@@ -2,113 +2,123 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>KARAAGE EATER</title>
     <style>
+        /* 画面固定の制御 */
+        html, body { 
+            position: fixed; width: 100%; height: 100%; overflow: hidden; 
+            touch-action: none; -webkit-overflow-scrolling: none;
+        }
         body { 
             margin: 0; padding: 0; text-align: center; 
             background-color: #d2b48c;
             background-image: linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887), linear-gradient(45deg, #deb887 25%, transparent 25%, transparent 75%, #deb887 75%, #deb887);
             background-size: 60px 60px; background-position: 0 0, 30px 30px;
-            overflow: hidden; font-family: 'Arial Black', sans-serif; touch-action: none;
+            font-family: 'Arial Black', sans-serif;
         }
-        #header { 
-            width: 100%; height: 60px; background: #222; color: #fff; 
-            display: flex; align-items: center; justify-content: center; 
-            position: fixed; top: 0; z-index: 100; font-size: 24px; letter-spacing: 2px;
-        }
-        #info-bar { position: fixed; top: 70px; width: 100%; z-index: 100; display: flex; justify-content: space-around; font-size: 18px; color: #5d4037; font-weight: bold; }
+        #header { width: 100%; height: 50px; background: #222; color: #fff; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; z-index: 100; font-size: 20px; }
+        #info-bar { position: fixed; top: 55px; width: 100%; z-index: 100; display: flex; justify-content: space-around; font-size: 16px; color: #5d4037; font-weight: bold; background: rgba(255,255,255,0.3); }
         
-        #char { font-size: 70px; position: absolute; z-index: 10; width: 70px; height: 70px; line-height: 70px; transform: translate(-50%, -50%); pointer-events: none; display: none; }
-        #karaage { font-size: 50px; position: absolute; display: none; width: 60px; height: 60px; transform: translate(-50%, -50%); z-index: 5; }
+        /* キャラ・アイテム */
+        #char { font-size: 60px; position: absolute; z-index: 10; transform: translate(-50%, -50%); pointer-events: none; display: none; }
+        .food { font-size: 45px; position: absolute; transform: translate(-50%, -50%); display: none; }
+        #clock-item { font-size: 40px; position: absolute; transform: translate(-50%, -50%); display: none; z-index: 15; }
 
-        /* 操作系 */
-        #joystick-area { position: fixed; bottom: 30px; left: 30px; width: 130px; height: 130px; background: rgba(0,0,0,0.25); border-radius: 50%; z-index: 200; display: none; }
-        #joystick-stick { position: absolute; top: 50%; left: 50%; width: 55px; height: 55px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); }
-        #action-btn-area { position: fixed; bottom: 40px; right: 30px; z-index: 200; display: none; }
-        #btn { width: 120px; height: 120px; background: #D2691E; color: white; border-radius: 50%; border: 6px solid #fff; font-size: 22px; font-weight: bold; box-shadow: 0 8px #5d4037; }
+        /* UI */
+        #joystick-area { position: fixed; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(0,0,0,0.2); border-radius: 50%; z-index: 200; display: none; }
+        #joystick-stick { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); }
+        #action-btn-area { position: fixed; bottom: 35px; right: 25px; z-index: 200; display: none; }
+        #btn { width: 110px; height: 110px; background: #D2691E; color: white; border-radius: 50%; border: 5px solid #fff; font-size: 18px; font-weight: bold; box-shadow: 0 6px #5d4037; }
 
-        /* オーバーレイ（タイトル・リトライ） */
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 300;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white;
-        }
-        .big-btn {
-            padding: 20px 40px; font-size: 30px; background: #ff4500; color: white;
-            border: none; border-radius: 10px; cursor: pointer; margin-top: 20px;
-            box-shadow: 0 5px #b22222;
-        }
+        /* メニュー画面 */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .level-btn { width: 200px; padding: 12px; margin: 8px; font-size: 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .lv-komori { background: #4CAF50; color: white; }
+        .lv-namimori { background: #FFC107; color: #000; }
+        .lv-oomori { background: #FF5722; color: white; }
+        .lv-tokumori { background: #9C27B0; color: white; display: none; }
     </style>
 </head>
 <body>
     <div id="header">KARAAGE EATER</div>
-    
     <div id="info-bar">
         <div id="timer-ui">TIME: 30</div>
-        <div id="status">満腹度: 0%</div>
+        <div id="count-ui">EAT: 0/10</div>
     </div>
 
-    <div id="karaage">🍗</div>
+    <div id="karaage" class="food">🍗</div>
+    <div id="spicy" class="food">🌶️</div>
+    <div id="big-karaage" class="food">🍖</div>
+    <div id="clock-item">⏰</div>
     <div id="char">😎</div>
     
     <div id="joystick-area"><div id="joystick-stick"></div></div>
     <div id="action-btn-area"><button id="btn">食べる！</button></div>
 
     <div id="overlay">
-        <h1 id="overlay-title">KARAAGE EATER</h1>
-        <p id="overlay-msg">30秒以内に10個食べろ！</p>
-        <button id="start-btn" class="big-btn">START</button>
+        <h1 id="overlay-title">SELECT MENU</h1>
+        <div id="menu-list">
+            <button class="level-btn lv-komori" onclick="initGame('小盛')">小盛 (10個)</button>
+            <button class="level-btn lv-namimori" onclick="initGame('並盛')">並盛 (12個)</button>
+            <button class="level-btn lv-oomori" onclick="initGame('大盛')">大盛 (15個)</button>
+            <button id="tokumori-btn" class="level-btn lv-tokumori" onclick="initGame('特盛')">特盛 (20個)</button>
+        </div>
+        <p id="overlay-msg" style="margin-top:20px; font-size:14px;"></p>
     </div>
 
     <script>
-        let fullness = 0;
-        let timeLeft = 30;
-        let gameState = "TITLE"; // TITLE, PLAYING, GAMEOVER
-        let pX = window.innerWidth / 2, pY = window.innerHeight / 2;
-        let kX = 0, kY = 0;
-        let joyX = 0, joyY = 0;
-        let isMoving = false;
-        let timerId = null;
+        let fullness = 0, targetFullness = 10, timeLeft = 30;
+        let gameState = "MENU", currentLevel = "";
+        let pX, pY, kX, kY, sx, sy, bx, by, cx, cy;
+        let joyX = 0, joyY = 0, isMoving = false, isStunned = false;
+        let timerId = null, bigTapCount = 0, tokumoriUnlocked = false;
+        let spicyChance = 0, spicyLeft = 0, bigLeft = 0, clockUsed = false;
 
         const char = document.getElementById('char');
-        const karaage = document.getElementById('karaage');
-        const status = document.getElementById('status');
-        const timerUi = document.getElementById('timer-ui');
-        const overlay = document.getElementById('overlay');
-        const overlayTitle = document.getElementById('overlay-title');
-        const overlayMsg = document.getElementById('overlay-msg');
-        const startBtn = document.getElementById('start-btn');
-        const stick = document.getElementById('joystick-stick');
-        const joyArea = document.getElementById('joystick-area');
+        const items = { k: document.getElementById('karaage'), s: document.getElementById('spicy'), b: document.getElementById('big-karaage'), c: document.getElementById('clock-item') };
+        const ui = { timer: document.getElementById('timer-ui'), count: document.getElementById('count-ui'), overlay: document.getElementById('overlay'), msg: document.getElementById('overlay-msg'), title: document.getElementById('overlay-title'), tokumori: document.getElementById('tokumori-btn') };
 
-        // ゲーム開始・再開
-        function startGame() {
-            fullness = 0;
-            timeLeft = 30;
-            gameState = "PLAYING";
-            pX = window.innerWidth / 2;
-            pY = window.innerHeight / 2;
+        function initGame(lv) {
+            currentLevel = lv;
+            fullness = 0; timeLeft = 30; isStunned = false; clockUsed = false;
+            pX = window.innerWidth / 2; pY = window.innerHeight / 2;
             
-            status.innerText = `満腹度: 0%`;
-            timerUi.innerText = `TIME: 30`;
-            overlay.style.display = "none";
-            char.style.display = "block";
-            char.innerText = "😎";
+            if(lv==='小盛'){ targetFullness=10; spicyChance=0; bigLeft=0; }
+            if(lv==='並盛'){ targetFullness=12; spicyChance=3; bigLeft=0; }
+            if(lv==='大盛'){ targetFullness=15; spicyChance=5; bigLeft=2; }
+            if(lv==='特盛'){ targetFullness=20; spicyChance=5; bigLeft=3; }
+            
+            spicyLeft = spicyChance;
+            ui.count.innerText = `EAT: 0/${targetFullness}`;
+            ui.overlay.style.display = "none";
+            char.style.display = "block"; char.innerText = "😎";
             document.getElementById('joystick-area').style.display = "block";
             document.getElementById('action-btn-area').style.display = "block";
             
-            spawnKaraage();
+            spawnFood();
+            gameState = "PLAYING";
             startTimer();
         }
 
-        function spawnKaraage() {
-            kX = Math.random() * (window.innerWidth - 120) + 60;
-            kY = Math.random() * (window.innerHeight - 350) + 180;
-            karaage.style.left = kX + "px";
-            karaage.style.top = kY + "px";
-            karaage.style.display = "block";
+        function spawnFood() {
+            Object.values(items).forEach(i => i.style.display = "none");
+            // 通常唐揚げ
+            kX = Math.random()*(window.innerWidth-100)+50; kY = Math.random()*(window.innerHeight-300)+150;
+            items.k.style.left = kX+"px"; items.k.style.top = kY+"px"; items.k.style.display = "block";
+            
+            // 激辛（ランダム出現）
+            if(spicyLeft > 0 && Math.random() < 0.4) {
+                sx = Math.random()*(window.innerWidth-100)+50; sy = Math.random()*(window.innerHeight-300)+150;
+                items.s.style.left = sx+"px"; items.s.style.top = sy+"px"; items.s.style.display = "block";
+                spicyLeft--;
+            }
+            // 特大（レベルに応じた回数）
+            if(bigLeft > 0 && fullness >= 3 && Math.random() < 0.3) {
+                bx = Math.random()*(window.innerWidth-100)+50; by = Math.random()*(window.innerHeight-300)+150;
+                items.b.style.left = bx+"px"; items.b.style.top = by+"px"; items.b.style.display = "block";
+                bigTapCount = 5;
+            }
         }
 
         function startTimer() {
@@ -116,76 +126,85 @@
             timerId = setInterval(() => {
                 if(gameState !== "PLAYING") return;
                 timeLeft--;
-                timerUi.innerText = `TIME: ${timeLeft}`;
-                if(timeLeft <= 0) endGame("TIME UP...", "あきらめるな！");
+                // 特盛時計イベント
+                if(currentLevel === "特盛" && timeLeft === 15 && !clockUsed) {
+                    cx = Math.random()*(window.innerWidth-100)+50; cy = Math.random()*(window.innerHeight-300)+150;
+                    items.c.style.left = cx+"px"; items.c.style.top = cy+"px"; items.c.style.display = "block";
+                    setTimeout(() => { items.c.style.display = "none"; }, 5000);
+                }
+                ui.timer.innerText = `TIME: ${timeLeft}`;
+                if(timeLeft <= 0) endGame(false);
             }, 1000);
         }
 
-        function endGame(title, msg) {
-            gameState = "GAMEOVER";
+        function endGame(isWin) {
+            gameState = "MENU";
             clearInterval(timerId);
-            overlay.style.display = "flex";
-            overlayTitle.innerText = title;
-            overlayMsg.innerText = msg;
-            startBtn.innerText = "RETRY";
-            karaage.style.display = "none";
+            ui.overlay.style.display = "flex";
+            if(isWin) {
+                ui.title.innerText = "CLEAR!";
+                ui.msg.innerText = `${currentLevel} 完食！お見事！`;
+                if(currentLevel === "大盛") { tokumoriUnlocked = true; ui.tokumori.style.display = "block"; }
+            } else {
+                ui.title.innerText = "GAME OVER";
+                ui.msg.innerText = "時間切れだ！リベンジしよう。";
+            }
         }
 
-        // スティック操作
-        const handleMove = (e) => {
-            if (!isMoving || gameState !== "PLAYING") return;
-            const touch = e.touches[0];
-            const rect = joyArea.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            let dx = touch.clientX - centerX, dy = touch.clientY - centerY;
-            const maxRadius = 60;
-            const distance = Math.min(Math.hypot(dx, dy), maxRadius);
-            const angle = Math.atan2(dy, dx);
-            joyX = (Math.cos(angle) * distance) / maxRadius;
-            joyY = (Math.sin(angle) * distance) / maxRadius;
-            stick.style.left = (50 + joyX * 40) + "%";
-            stick.style.top = (50 + joyY * 40) + "%";
-        };
-
-        joyArea.addEventListener('touchstart', (e) => { isMoving = true; handleMove(e); });
-        joyArea.addEventListener('touchmove', (e) => { handleMove(e); });
+        // 移動
+        const joyArea = document.getElementById('joystick-area');
+        const stick = document.getElementById('joystick-stick');
+        joyArea.addEventListener('touchstart', (e) => { isMoving = true; });
+        joyArea.addEventListener('touchmove', (e) => {
+            const t = e.touches[0]; const r = joyArea.getBoundingClientRect();
+            const dx = t.clientX - (r.left + 60), dy = t.clientY - (r.top + 60);
+            const dist = Math.min(Math.hypot(dx, dy), 50); const ang = Math.atan2(dy, dx);
+            joyX = Math.cos(ang) * dist / 50; joyY = Math.sin(ang) * dist / 50;
+            stick.style.left = (50 + joyX * 40) + "%"; stick.style.top = (50 + joyY * 40) + "%";
+        });
         window.addEventListener('touchend', () => { isMoving = false; joyX = 0; joyY = 0; stick.style.left = "50%"; stick.style.top = "50%"; });
 
         function gameLoop() {
-            if (gameState === "PLAYING" && isMoving) {
-                pX += joyX * 5;
-                pY += joyY * 5;
-                pX = Math.max(40, Math.min(window.innerWidth - 40, pX));
-                pY = Math.max(120, Math.min(window.innerHeight - 180, pY));
+            if (gameState === "PLAYING" && isMoving && !isStunned) {
+                pX += joyX * 6; pY += joyY * 6;
+                pX = Math.max(30, Math.min(window.innerWidth - 30, pX));
+                pY = Math.max(100, Math.min(window.innerHeight - 150, pY));
             }
-            char.style.left = pX + "px";
-            char.style.top = pY + "px";
+            char.style.left = pX + "px"; char.style.top = pY + "px";
             requestAnimationFrame(gameLoop);
         }
         gameLoop();
 
         document.getElementById('btn').onclick = () => {
-            if(gameState !== "PLAYING") return;
-            let dist = Math.hypot(pX - kX, pY - kY);
-            if (dist < 110) { 
-                fullness += 10;
-                status.innerText = `満腹度: ${fullness}%`;
-                char.innerText = "😋"; 
-                karaage.style.display = "none";
-                setTimeout(() => { 
-                    if (fullness >= 100) {
-                        char.innerText = "😎✨";
-                        endGame("MISSION COMPLETE!", "最高の食いっぷりだ！");
-                    } else {
-                        char.innerText = "😎"; 
-                        spawnKaraage();
-                    }
-                }, 200);
+            if(gameState !== "PLAYING" || isStunned) return;
+            // 時計判定
+            if(items.c.style.display === "block" && Math.hypot(pX-cx, pY-cy) < 80) {
+                timeLeft += 10; clockUsed = true; items.c.style.display = "none"; return;
+            }
+            // 激辛判定
+            if(items.s.style.display === "block" && Math.hypot(pX-sx, pY-sy) < 80) {
+                isStunned = true; char.innerText = "😭"; items.s.style.display = "none";
+                setTimeout(() => { isStunned = false; char.innerText = "😎"; }, 3000); return;
+            }
+            // 特大判定
+            if(items.b.style.display === "block" && Math.hypot(pX-bx, pY-by) < 80) {
+                bigTapCount--; char.innerText = "😲";
+                if(bigTapCount <= 0) { 
+                    fullness++; bigLeft--; items.b.style.display = "none"; checkWin(); spawnFood(); 
+                }
+                return;
+            }
+            // 通常判定
+            if(Math.hypot(pX-kX, pY-kY) < 90) {
+                fullness++; char.innerText = "😋"; items.k.style.display = "none";
+                checkWin(); setTimeout(() => { if(gameState==="PLAYING") { char.innerText="😎"; spawnFood(); } }, 200);
             }
         };
 
-        startBtn.onclick = startGame;
+        function checkWin() {
+            ui.count.innerText = `EAT: ${fullness}/${targetFullness}`;
+            if(fullness >= targetFullness) endGame(true);
+        }
     </script>
 </body>
 </html>
